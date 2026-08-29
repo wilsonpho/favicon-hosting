@@ -194,8 +194,18 @@
   .try button:hover { border-color: var(--navy); color: var(--navy-deep); }
   .try button[aria-pressed="true"] { border-color: var(--navy); background: #EDF1F8; font-weight: 700; }
 
-  /* ---------- the roster embed ---------- */
-  #frame { display: block; width: 100%; border: 1px solid var(--hair); border-radius: 4px; background: var(--paper); }
+  /* ---------- the roster embed ----------
+     The embedded form carries its own title and its own troupe box, which
+     would sit directly under this page's. Measured on 2026-08-29, that
+     chrome is exactly 225px tall for every troupe size, so the frame is
+     pulled up by 225px inside a clipping panel and only the roster shows.
+     The panel scrolls, so an unfamiliar troupe can never lose rows. */
+  .framewrap {
+    overflow: hidden; overflow-y: auto;
+    border: 1px solid var(--hair); border-radius: 4px; background: var(--paper);
+    -webkit-overflow-scrolling: touch;
+  }
+  #frame { display: block; width: 100%; border: 0; margin-top: -225px; }
 
   /* ---------- students you are registering ---------- */
   .srow { display: grid; grid-template-columns: 24px 1fr 1fr; gap: var(--s2); align-items: end; margin-bottom: var(--s3); }
@@ -282,7 +292,9 @@
       <span class="count" id="count"></span>
     </div>
     <p class="note" id="rosternote"></p>
-    <iframe id="frame" title="Troupe roster, live from EdTA" height="2040" loading="eager"></iframe>
+    <div class="framewrap" id="framewrap">
+      <iframe id="frame" title="Troupe roster, live from EdTA" loading="eager"></iframe>
+    </div>
   </section>
 
   <section class="section">
@@ -321,10 +333,14 @@
   var BASE = "https://schooltheatre.tfaforms.net/99";
 
   /* Without the resize helper the parent page cannot learn how tall the
-     roster is, so the frame is sized from a known row count and falls back
-     to the tallest Georgia troupe when the number is unfamiliar.
-     360px of form chrome plus a steady 56px per row. */
-  var CHROME = 360, ROW = 56, GA_MAX = 7080;
+     roster is, so it is computed from a known row count. Measured against
+     the live form on 2026-08-29 at two sizes, 15 rows and 30 rows, which
+     solve to 55.5px per row on 391px of chrome; ROW is rounded up and a
+     margin added so the frame never grows an inner scrollbar.
+     CROP is the title-plus-troupe-box block above the roster, 225px at
+     both sizes, hidden by pulling the frame up inside .framewrap. */
+  var DOC_BASE = 391, ROW = 56, CROP = 225, PAD = 40;
+  var UNKNOWN_PANEL = 320, UNKNOWN_ROWS = 130;
 
   /* Counted against this form and cross-checked against the same aggregate
      in Salesforce on 2026-08-29. */
@@ -342,6 +358,7 @@
   var troupe = "3682";
   var tn = document.getElementById("tn");
   var frame = document.getElementById("frame");
+  var wrap = document.getElementById("framewrap");
   var count = document.getElementById("count");
   var note = document.getElementById("rosternote");
   var chips = document.querySelectorAll(".try button");
@@ -351,9 +368,10 @@
     var url = BASE + "?troupe=" + encodeURIComponent(troupe);
     if (frame.getAttribute("src") !== url) { frame.setAttribute("src", url); }
 
-    var h = rows ? (CHROME + rows * ROW) : GA_MAX;
+    var h = DOC_BASE + (rows || UNKNOWN_ROWS) * ROW + PAD;
     frame.setAttribute("height", String(h));
     frame.style.height = h + "px";
+    wrap.style.height = (rows ? rows * ROW + 8 : UNKNOWN_PANEL) + "px";
 
     var school = SCHOOL[troupe];
     if (rows) {
@@ -363,7 +381,7 @@
     } else {
       count.textContent = "";
       note.textContent = "Troupe " + troupe +
-        ". If this troupe is outside Georgia, or has no students on file, the panel below comes back empty.";
+        ". This lookup covers Georgia troupes only, so a troupe from another state comes back empty.";
     }
 
     for (var i = 0; i < chips.length; i++) {
