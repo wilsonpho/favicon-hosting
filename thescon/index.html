@@ -90,7 +90,29 @@
     font-family: var(--mont); font-weight: 700; font-size: var(--micro);
     letter-spacing: .12em; text-transform: uppercase; white-space: nowrap;
   }
-  .flag span { font-size: var(--ui); line-height: 1.5; }
+  .flag .txt { font-size: var(--ui); line-height: 1.5; }
+
+  /* ---------- live-data badge ----------
+     The banner names the live panel and the panel wears the same badge, so
+     the two read as one annotation instead of two unrelated notes. It keeps
+     the flag's amber rather than the brand gold on purpose: a note ABOUT the
+     page must not borrow the navy and gold it is annotating, or it becomes
+     part of the thing it is trying to distinguish itself from. */
+  .pill {
+    display: inline-block;
+    font-family: var(--mont); font-size: var(--micro); font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+    color: var(--flag); background: var(--flag-bg);
+    border: 1px solid var(--flag-rule); border-radius: 999px;
+    padding: 3px 10px;
+  }
+  /* inline-block rather than a flex gap, so the badge keeps a text baseline
+     and sits on the h2's baseline inside .sechead. */
+  .pill::before {
+    content: ""; display: inline-block; width: 6px; height: 6px;
+    border-radius: 50%; background: currentColor;
+    margin-right: 6px; vertical-align: 1px;
+  }
 
   /* ---------- swoogo header ---------- */
   .site-header {
@@ -183,17 +205,6 @@
   .lookup { display: flex; gap: var(--s1); align-items: flex-end; flex-wrap: wrap; }
   .lookup .form-group { flex: 0 1 220px; }
 
-  .try { margin: var(--s3) 0 0; font-size: var(--ui); color: var(--muted); display: flex; gap: var(--s1); align-items: center; flex-wrap: wrap; }
-  .try .lbl { color: var(--faint); }
-  .try button {
-    font-family: var(--nun); font-size: var(--ui); color: var(--navy);
-    background: var(--wash); border: 1px solid #DCE1E7; border-radius: 3px;
-    padding: 5px 11px; cursor: pointer; line-height: 1.3;
-    transition: border-color .15s, color .15s;
-  }
-  .try button:hover { border-color: var(--navy); color: var(--navy-deep); }
-  .try button[aria-pressed="true"] { border-color: var(--navy); background: #EDF1F8; font-weight: 700; }
-
   /* ---------- the roster embed ----------
      The embedded form carries its own title and its own troupe box, which
      would sit directly under this page's. Measured on 2026-08-29, that
@@ -238,7 +249,7 @@
 <div class="flag">
   <div class="container">
     <strong>Prototype</strong>
-    <span>Not a live registration form, and not published by Georgia Thespians. Nothing typed here is submitted or saved. The roster panel is a live lookup against EdTA&rsquo;s database, so it shows real student names, emails and membership status.</span>
+    <span class="txt">Two different things are on this page. The Georgia Thespians styling, the four steps across the top and the student rows near the bottom are a mock-up: a picture of how this step could work, with nothing behind it. The troupe lookup and the roster panel below it, marked <span class="pill">Live from EdTA</span>, are real. They query EdTA&rsquo;s database each time you look up a troupe, so the names, emails and membership status shown there are actual student records. Nothing typed here is submitted or saved, and this page is not published by Georgia Thespians.</span>
   </div>
 </div>
 
@@ -276,19 +287,12 @@
       </div>
       <button class="btn-standard" id="go" type="button">Show roster</button>
     </div>
-    <p class="try">
-      <span class="lbl">Try:</span>
-      <button type="button" data-t="8663">8663 Gwinnett Online Campus</button>
-      <button type="button" data-t="3682">3682 Carrollton</button>
-      <button type="button" data-t="6168">6168 Milton</button>
-      <button type="button" data-t="2940">2940 Calhoun</button>
-      <button type="button" data-t="2971">2971 Buford</button>
-    </p>
   </section>
 
   <section class="section">
     <div class="sechead">
       <h2>Your current EdTA roster</h2>
+      <span class="pill">Live from EdTA</span>
     </div>
     <p class="note" id="rosternote"></p>
     <div class="framewrap" id="framewrap">
@@ -359,7 +363,6 @@
   var frame = document.getElementById("frame");
   var wrap = document.getElementById("framewrap");
   var note = document.getElementById("rosternote");
-  var chips = document.querySelectorAll(".try button");
 
   function render() {
     var rows = KNOWN[troupe];
@@ -379,10 +382,6 @@
       note.textContent = "Troupe " + troupe +
         ". This lookup covers Georgia troupes only, so a troupe from another state comes back empty.";
     }
-
-    for (var i = 0; i < chips.length; i++) {
-      chips[i].setAttribute("aria-pressed", String(chips[i].getAttribute("data-t") === troupe));
-    }
   }
 
   function submitTroupe() {
@@ -396,12 +395,6 @@
   tn.addEventListener("keydown", function (e) {
     if (e.key === "Enter") { e.preventDefault(); submitTroupe(); }
   });
-  for (var i = 0; i < chips.length; i++) {
-    chips[i].addEventListener("click", function () {
-      tn.value = this.getAttribute("data-t");
-      submitTroupe();
-    });
-  }
 
   var added = 2;
   document.getElementById("addrow").addEventListener("click", function () {
