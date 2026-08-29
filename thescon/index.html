@@ -289,7 +289,6 @@
   <section class="section">
     <div class="sechead">
       <h2>Your current EdTA roster</h2>
-      <span class="count" id="count"></span>
     </div>
     <p class="note" id="rosternote"></p>
     <div class="framewrap" id="framewrap">
@@ -359,7 +358,6 @@
   var tn = document.getElementById("tn");
   var frame = document.getElementById("frame");
   var wrap = document.getElementById("framewrap");
-  var count = document.getElementById("count");
   var note = document.getElementById("rosternote");
   var chips = document.querySelectorAll(".try button");
 
@@ -375,11 +373,9 @@
 
     var school = SCHOOL[troupe];
     if (rows) {
-      count.textContent = rows + (rows === 1 ? " student" : " students");
       note.textContent = "Troupe " + troupe + (school ? ", " + school : "") +
         ". Membership status is read live from EdTA at the moment this page loads.";
     } else {
-      count.textContent = "";
       note.textContent = "Troupe " + troupe +
         ". This lookup covers Georgia troupes only, so a troupe from another state comes back empty.";
     }
