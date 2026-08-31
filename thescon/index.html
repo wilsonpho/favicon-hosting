@@ -369,6 +369,8 @@
     var url = BASE + "?troupe=" + encodeURIComponent(troupe);
     if (frame.getAttribute("src") !== url) { frame.setAttribute("src", url); }
 
+    /* Provisional only. The form reports its true height moments later and the
+       message listener below overrides both of these. */
     var h = DOC_BASE + (rows || UNKNOWN_ROWS) * ROW + PAD;
     frame.setAttribute("height", String(h));
     frame.style.height = h + "px";
@@ -390,6 +392,21 @@
     troupe = v;
     render();
   }
+
+  /* The form posts its own rendered height once it is laid out, and that is the
+     only reliable way to size this frame: the KNOWN table above cannot know a
+     troupe it has never seen, so every unlisted troupe was being clipped to the
+     fallback panel. We do NOT load FormAssembly's own resize helper, which
+     rewrites the src of every iframe on the page and accepts postMessage from
+     any origin. This accepts one origin and one number and nothing else. */
+  window.addEventListener("message", function (e) {
+    if (e.origin !== "https://schooltheatre.tfaforms.net") { return; }
+    var reported = e.data && e.data.tfaHeight;
+    if (typeof reported !== "number" || reported < 200 || reported > 40000) { return; }
+    frame.setAttribute("height", String(reported));
+    frame.style.height = reported + "px";
+    wrap.style.height = (reported - CROP) + "px";
+  });
 
   document.getElementById("go").addEventListener("click", submitTroupe);
   tn.addEventListener("keydown", function (e) {
