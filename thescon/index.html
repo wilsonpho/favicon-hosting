@@ -212,6 +212,10 @@
      pulled up by 225px inside a clipping panel and only the roster shows.
      The panel scrolls, so an unfamiliar troupe can never lose rows. */
   .framewrap {
+    /* Breathing room above the roster's header row, which otherwise sits hard
+       against the panel border. Added to the height below, not absorbed by it. */
+    padding-top: 20px;
+    box-sizing: border-box;
     overflow: hidden; overflow-y: auto;
     border: 1px solid var(--hair); border-radius: 4px; background: var(--paper);
     -webkit-overflow-scrolling: touch;
@@ -344,6 +348,7 @@
      both sizes, hidden by pulling the frame up inside .framewrap. */
   var DOC_BASE = 391, ROW = 56, CROP = 225, PAD = 40;
   var UNKNOWN_PANEL = 320, UNKNOWN_ROWS = 130;
+  var PAD_TOP = 20;   /* must match .framewrap padding-top */
 
   /* Counted against this form and cross-checked against the same aggregate
      in Salesforce on 2026-08-29. */
@@ -374,7 +379,7 @@
     var h = DOC_BASE + (rows || UNKNOWN_ROWS) * ROW + PAD;
     frame.setAttribute("height", String(h));
     frame.style.height = h + "px";
-    wrap.style.height = (rows ? rows * ROW + 8 : UNKNOWN_PANEL) + "px";
+    wrap.style.height = ((rows ? rows * ROW + 8 : UNKNOWN_PANEL) + PAD_TOP) + "px";
 
     var school = SCHOOL[troupe];
     if (rows) {
@@ -405,7 +410,7 @@
     if (typeof reported !== "number" || reported < 200 || reported > 40000) { return; }
     frame.setAttribute("height", String(reported));
     frame.style.height = reported + "px";
-    wrap.style.height = (reported - CROP) + "px";
+    wrap.style.height = (reported - CROP + PAD_TOP) + "px";
   });
 
   document.getElementById("go").addEventListener("click", submitTroupe);
